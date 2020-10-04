@@ -220,7 +220,7 @@ ENV ZIP_BUILD_DIR=${BUILD_DIR}/zip
 RUN set -xe; \
     mkdir -p ${ZIP_BUILD_DIR}/bin/; \
 # Download and upack the source code
-    curl -Ls https://github.com/nih-at/libzip/archive/rel-${VERSION_ZIP//./-}.tar.gz \
+    curl -Ls https://github.com/nih-at/libzip/archive/v${VERSION_ZIP}.tar.gz \
   | tar xzC ${ZIP_BUILD_DIR} --strip-components=1
 
 # Move into the unpackaged code directory
@@ -358,6 +358,31 @@ RUN set -xe; \
 RUN set -xe; \
     make install
 
+# Build gmp
+
+ARG gmp
+ENV VERSION_GMP=${gmp}
+ENV GMP_BUILD_DIR=${BUILD_DIR}/gmp
+
+RUN set -xe; \
+    mkdir -p ${GMP_BUILD_DIR}; \
+    curl -Ls https://gmplib.org/download/gmp/gmp-${VERSION_GMP}.tar.xz \
+    | tar xJC ${GMP_BUILD_DIR} --strip-components=1
+
+WORKDIR  ${GMP_BUILD_DIR}/
+
+RUN set -xe; \
+    CFLAGS="" \
+    CPPFLAGS="-I${INSTALL_DIR}/include  -I/usr/include" \
+    LDFLAGS="-L${INSTALL_DIR}/lib64 -L${INSTALL_DIR}/lib" \
+    ./configure \
+        --prefix=${INSTALL_DIR} \
+        --enable-shared \
+        --disable-static
+
+RUN set -xe; \
+    make install
+
 # Build PHP
 
 ARG php
@@ -400,6 +425,7 @@ RUN set -xe \
         --with-openssl \
         --with-zlib=${INSTALL_DIR} \
         --with-curl \
+        --with-gmp=shared,${INSTALL_DIR} \
         --enable-bcmath \
         --enable-sockets \
         --enable-exif \
@@ -428,7 +454,7 @@ RUN set -xe; \
 RUN pecl install -f redis
 
 # RUN pecl install imagick
-# RUN pecl install imagick
+RUN pecl install imagick
 
 # Strip All Unneeded Symbols
 
