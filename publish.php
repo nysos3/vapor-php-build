@@ -4,6 +4,7 @@ use Aws\Lambda\LambdaClient;
 use Dotenv\Dotenv;
 use Symfony\Component\Process\Process;
 
+ini_set('memory_limit', '4G');
 require_once __DIR__ . '/vendor/autoload.php';
 
 // Dotenv::createImmutable(__DIR__)->safeLoad();
